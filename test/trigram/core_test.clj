@@ -3,21 +3,24 @@
             [trigram.core :refer :all]))
 
 (def test-sample0
-  ["The" "cat" "sat" "on" "the" "other" "cat" "on" "the" "wall."])
+  ["The" "cat" "sat" "on" "the" "other" "cat" "on" "the" "mat" "on" "the" "floor."])
 
 (def test-sample1
   ["Now" "is" "the" "winter" "of" "our" "discontent" "made" "summer" "by" "this" "glorious" "sun" "of" "York."])
 
 (fact "Trigramize breaks lists into threes and twos, ones are eliminated"
-      (chop test-sample0) => [["The" "cat" "sat"] 
-                              ["cat" "sat" "on"] 
+      (chop test-sample0) => [["The" "cat" "sat"]
+                              ["cat" "sat" "on"]
                               ["sat" "on" "the"]
                               ["on" "the" "other"]
                               ["the" "other" "cat"]
                               ["other" "cat" "on"]
                               ["cat" "on" "the"]
-                              ["on" "the" "wall."]
-                              ["the" "wall."]]
+                              ["on" "the" "mat"]
+                              ["the" "mat" "on"]
+                              ["mat" "on" "the"]
+                              ["on" "the" "floor."]
+                              ["the" "floor."]]
 
      (chop test-sample1) => [["Now" "is" "the"] 
                              ["is" "the" "winter"] 
@@ -34,6 +37,34 @@
                              ["sun" "of" "York."] 
                              ["of" "York."]])
 
-(pending-facts "about pair"
+(facts "about pair"
        (fact "pair converts a list of three things into a pair of a list of two and one thing"
-             (pair '(1 2 3)) => [[1 2] 3]))
+             (pair '(1 2 3)) => [[1 2] [3]])
+        (fact "pair converts a list of two things into a list with one thing and the other thing"
+              (pair '(1 2)) => [[1] [2]]))
+
+(facts "sentence-trigrams creates a map for a single sentence" 
+       (sentence-trigrams [1 2 3 4 5]) => 
+       {[1 2] [3]
+        [2 3] [4]
+        [3 4] [5]
+        [4] [5]}
+       (sentence-trigrams test-sample0) =>
+       {["the" "other"] ["cat"]
+        ["mat" "on"] ["the"]
+        ["cat" "on"] ["the"]
+        ["cat" "sat"] ["on"]
+        ["The" "cat"] ["sat"]
+        ["the"] ["floor."]
+        ["the" "mat"] ["on"]
+        ["on" "the"] ["other" "mat" "floor."]
+        ["sat" "on"] ["the"]
+        ["other" "cat"] ["on"]})
+
+(facts "about conjoin-pair"
+       (fact "if the map does not contain the key, the key and value are added" 
+             (conjoin-pair {} [[1 2] [3]]) => {[1 2] [3]})
+       (fact "if the map contains the key, the values are appended"
+             (conjoin-pair {[1 2] [3]} [[1 2] [4]]) => {[1 2] [3 4]}))
+
+

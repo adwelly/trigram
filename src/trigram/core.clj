@@ -29,5 +29,12 @@
 (defn chop [l] ; l is list of strings
   (partition 3 1 nil l))
 
-(defn pair [l] ; l is a list of things
-  false)
+(defn pair [[f s & t]] ; l is a list of things. This works properly with lists of 3 and 2 but chops longer
+    (if (nil? t) [[f] [s]] [[f s] [(first t)]]))
+
+(defn conjoin-pair [m [k v]]
+  (if (contains? m k) (assoc m k (conj (get m k) (first v))) (assoc m k v)))
+
+
+(defn sentence-trigrams [l] ; l is a list of strings
+  (reduce conjoin-pair {} (map pair (chop l))))
