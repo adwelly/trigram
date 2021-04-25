@@ -16,11 +16,13 @@
 
 (def tokenize (make-tokenizer "en-token.bin"))
 
+(def start-token "XXX-START-XXX")
+
 (defn longsnozzle-sample [] ;; 596 max
-  (get-sentences (apply str (lazy-open "https://www.gutenberg.org/files/65137/65137-0.txt"))))
+  (map #(str start-token " " %) (drop 7 (get-sentences (apply str (lazy-open "https://www.gutenberg.org/files/65137/65137-0.txt"))))))
 
 (defn edwin-drood-sample [] ;; 5094 max
- (get-sentences (apply str (lazy-open "http://www.gutenberg.org/files/564/564-0.txt"))))
+ (drop 5 (get-sentences (apply str (lazy-open "http://www.gutenberg.org/files/564/564-0.txt")))))
 
 (defn chop [l] ; l is list of strings
   (partition 3 1 nil l))
@@ -35,11 +37,44 @@
 (defn sentence-trigrams [l] ; l is a list of strings
   (reduce conjoin-pair {} (map pair (chop l))))
 
+;slightly controversially - removing dups
 (defn conjoin-maps [m0 m1]
   (merge-with #(vec (distinct (into %1 %2))) m0 m1))
 
+; Room for a transducer here?
 (defn go-long []
   (reduce conjoin-maps (map sentence-trigrams (map tokenize (longsnozzle-sample)))))
 
 (defn go-drood []
   (reduce conjoin-maps (map sentence-trigrams (map tokenize (edwin-drood-sample)))))
+
+;; Find keys beginning with a token
+(defn begins [m t]
+  (filter #(= (first %) t) (keys m)))
+
+;; Find starting points in a trigram map
+(defn starts [m]
+  (begins m start-token))
+
+(defn step [acc token tm strategy end-condp]
+  (let [chosen-key (strategy acc token tm end-condp)
+       ; _ (println "Chosen key: " chosen-key)
+        value (get tm chosen-key)
+        ;_ (println "value: " value)
+        next-token (first (shuffle value))
+        ;_ (println "next-token: " next-token)
+        next-acc (into [] (concat acc chosen-key))
+        ;_ (println "next-acc: " next-acc)
+        potential-final-acc (conj next-acc next-token) ]
+    (if (end-condp potential-final-acc) 
+      {:acc potential-final-acc :token nil}
+      {:acc next-acc :token next-token})))
+
+;; Walk the trigram map until some condition (p) is fulfilled. The condition
+;; p will be applied at each step to the growing accumulator of results
+(defn walk [tm strategy end-condp]
+  (loop [the-acc [] the-token start-token]
+    (if (nil? the-token)
+      the-acc
+      (let [{:keys [acc token]} (step the-acc the-token tm strategy end-condp)]
+        (recur acc token)))))

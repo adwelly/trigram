@@ -83,4 +83,38 @@
          ["sat" "on"] ["the"]
          ["other" "cat"] ["on"]})
 
+(fact "starts finds elements in the map that are starting tokens"
+      (starts {["XXX-START-XXX" 3] [1]
+               [2 3] [4]
+               ["XXX-START-XXX" 4] [19]}) =>
+               [["XXX-START-XXX" 3]
+                ["XXX-START-XXX" 4]])
 
+(defn constantly-true [l] true)
+
+(defn more-than-5-tokens? [l]
+  (< 5 (count l)))
+
+(defn pick-first-value [acc token tm end-condp]
+  (first (sort (begins tm token))))
+
+(facts "about step"
+       (fact "step will return the accumulater, with the final token and nil as the next token if the end condition is met"
+             (step [1 2 3 4] 5 {[5 6] [7]} pick-first-value more-than-5-tokens?) =>
+               {:acc [1 2 3 4 5 6 7] :token nil})
+       (fact "step will return the current accumulator and the next token if the end condition is not met"
+             (step [1] 2 {[2 3] [4]
+                          [5 6] [7]}
+                   pick-first-value more-than-5-tokens?) =>
+             {:acc [1 2 3] :token 4}))
+
+(facts "about walk"
+       (fact "walk will keep calling step until step returns nil in the place of next token"
+             (walk {[start-token 6] [7]} pick-first-value constantly-true) =>
+             ["XXX-START-XXX" 6 7]
+             (walk {[start-token 1] [0]
+                    [0 1] [0]} pick-first-value more-than-5-tokens?) =>
+            ["XXX-START-XXX" 1 0 1 0 1 0]
+             (walk (merge {[start-token "The"] ["cat"]} (sentence-trigrams test-sample0)) pick-first-value more-than-5-tokens?) =>
+            ["XXX-START-XXX" "The" "cat" "on" "the" "floor."])) 
+      
