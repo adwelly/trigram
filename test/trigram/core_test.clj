@@ -67,4 +67,20 @@
        (fact "if the map contains the key, the values are appended"
              (conjoin-pair {[1 2] [3]} [[1 2] [4]]) => {[1 2] [3 4]}))
 
+(fact "Conjoin maps takes two maps of trigrams and produces one. Duplications in values are removed"
+      (conjoin-maps {:a [1] :b [2 3]} {:b [4 5] :c [6]}) =>
+      {:a [1] :b [2 3 4 5] :c [6]}
+      (conjoin-maps 
+         {["the" "other"] ["cat"]
+          ["the" "mat"] ["on"]
+          ["on" "the"] ["other"]}
+         {["on" "the"] ["other" "mat" "floor."]
+          ["sat" "on"] ["the"]
+          ["other" "cat"] ["on"]}) =>
+        {["the" "other"] ["cat"]
+         ["the" "mat"] ["on"]
+         ["on" "the"] ["other" "mat" "floor."]
+         ["sat" "on"] ["the"]
+         ["other" "cat"] ["on"]})
+
 

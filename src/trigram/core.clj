@@ -5,12 +5,11 @@
 
 ;; This is practically idiomatic these days:
 (defn lazy-open [uri]
-  (let [line-count (atom 0)]
     (defn helper [rdr]
       (lazy-seq 
          (if-let [line (.readLine rdr)]
-           (do (swap! line-count inc) (cons (str line " ") (helper rdr)))
-           (.close rdr)))))
+           (do (cons (str line " ") (helper rdr)))
+           (.close rdr))))
   (lazy-seq (helper (io/reader uri))))
 
 (def get-sentences (make-sentence-detector "en-sent.bin"))
@@ -22,9 +21,6 @@
 
 (defn edwin-drood-sample [] ;; 5094 max
  (get-sentences (apply str (lazy-open "http://www.gutenberg.org/files/564/564-0.txt"))))
-
-(defn go-long []
-  (map tokenize (longsnozzle-sample)))
 
 (defn chop [l] ; l is list of strings
   (partition 3 1 nil l))
@@ -38,3 +34,12 @@
 
 (defn sentence-trigrams [l] ; l is a list of strings
   (reduce conjoin-pair {} (map pair (chop l))))
+
+(defn conjoin-maps [m0 m1]
+  (merge-with #(vec (distinct (into %1 %2))) m0 m1))
+
+(defn go-long []
+  (reduce conjoin-maps (map sentence-trigrams (map tokenize (longsnozzle-sample)))))
+
+(defn go-drood []
+  (reduce conjoin-maps (map sentence-trigrams (map tokenize (edwin-drood-sample)))))
