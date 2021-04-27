@@ -157,3 +157,21 @@
 ;; that runs over a trigram-map in reverse to the usual LR order, and starting with the 
 ;; desired word, work back to the beginning of sentence. Then use the existing code to generate 
 ;; the second half of the sentence, and join the two together.
+
+(defn repeated-walk-token [tm strategy end-condp]
+  (loop []
+    (let [candidate (walk tm strategy end-condp)]
+      (if (end-condp candidate)
+        candidate
+        (recur)))))
+
+(defn search [word tokens]
+    (if (contains? (set tokens) word)
+      (reduced tokens)
+      []))
+
+(defn drood-contains-word [word]
+  (let [tm (go-drood)
+        candidate (reduce (fn [acc tokens] (search word tokens)) (repeatedly #(repeated-walk-token tm keep-going ends-with-stop?)))]
+    (->str (drop 1 candidate))))
+    
