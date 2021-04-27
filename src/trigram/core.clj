@@ -153,10 +153,13 @@
   (let [tm (go-drood)]
     (doall (for [n (range 10)] (sentence tm)))))
 
-;; The approach to a 'sentence containing a word' is to create a backwards step function
-;; that runs over a trigram-map in reverse to the usual LR order, and starting with the 
-;; desired word, work back to the beginning of sentence. Then use the existing code to generate 
-;; the second half of the sentence, and join the two together.
+;; The middle out approach is defeated by the fact that the chance of hitting the beginning of
+;; a sentence from the middle is vanishingly small. A more simple search of the graph
+;; represented by the tm map is defeated by loops.
+;;
+;; A quick and dirty solution is to generate sentences via random walk until one is found that
+;; contains the searched word. It's not ideal but works reasonably well for common words like
+;; 'the', 'it', 'as' etc.
 
 (defn repeated-walk-token [tm strategy end-condp]
   (loop []
