@@ -1,7 +1,8 @@
 (ns trigram.core
   (:require [clojure.java.io :as io]
             [opennlp.nlp :refer :all]
-            [opennlp.treebank :refer :all]))
+            [opennlp.treebank :refer :all]
+            [ubergraph.core :as uber]))
 
 ;; Load the sample(s)
 ;; ========================
@@ -154,7 +155,7 @@
     (doall (for [n (range 10)] (sentence tm)))))
 
 ;; The middle out approach is defeated by the fact that the chance of hitting the beginning of
-;; a sentence from the middle is vanishingly small. A more simple search of the graph
+;; a sentence from the middle is vanishingly small. A simple search of the graph
 ;; represented by the tm map is defeated by loops.
 ;;
 ;; A quick and dirty solution is to generate sentences via random walk until one is found that
@@ -177,4 +178,20 @@
   (let [tm (go-drood)
         candidate (reduce (fn [acc tokens] (search word tokens)) (repeatedly #(repeated-walk-token tm keep-going ends-with-stop?)))]
     (->str (drop 1 candidate))))
+
+;; A better idea would be to treat the trigram map as the generator of true graph and then use a
+;; standard path algorithm to find a link to the searched word. The rest of the sentence could be
+;; completed by random walk or even by path search again.
+;; Use Ubergraph for this experiment.
+
+;; find the key in tm, get the associated tokens, find all keys in tm for the tokens
+(defn all-keys-starting-with [tm t]
+  (filter #(= (first %) t) (keys tm)))
+
+(defn find-all-nodes [tm k]
+  (let [tokens (get tm k)]
+    (map #(vector k %) (apply concat (map #(all-keys-starting-with tm %) tokens)))))
+
+  (defn tm->graph [tm]
+    (apply uber/graph (apply concat (map #(find-all-nodes tm %) (keys tm)))))
     

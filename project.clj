@@ -5,5 +5,6 @@
             :url "https://www.eclipse.org/legal/epl-2.0/"}
   :dependencies [[org.clojure/clojure "1.10.1"]
                  [midje "1.9.10"]
-                 [clojure-opennlp "0.5.0"]]
+                 [clojure-opennlp "0.5.0"]
+                 [ubergraph "0.8.2"]]
   :repl-options {:init-ns trigram.core})

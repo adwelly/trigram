@@ -1,6 +1,7 @@
 (ns trigram.core-test
   (:require [midje.sweet :refer :all]
-            [trigram.core :refer :all]))
+            [trigram.core :refer :all]
+            [ubergraph.core :as uber]))
 
 (def test-sample0
   ["The" "cat" "sat" "on" "the" "other" "cat" "on" "the" "mat" "on" "the" "floor."])
@@ -117,4 +118,31 @@
             ["XXX-START-XXX" 1 0 1 0 1 0]
              (walk (merge {[start-token "The"] ["cat"]} (sentence-trigrams test-sample0)) pick-first-value more-than-5-tokens?) =>
             ["XXX-START-XXX" "The" "cat" "on" "the" "floor."])) 
+
+;(facts "about ubergraph"
+      ;(fact "vectors in nodes are acceptable"
+            ;(ubergraph.core/graph [[1 2] [2 3]] [[1 2] [4 5]] [[4 5] [6 7]] [[2 3] [6 7]]) => 
+            ;false))
       
+
+(facts "about all-all-keys-starting-with"
+       (all-keys-starting-with {["the" "other"] ["cat"]
+                                ["the" "mat"] ["on"]
+                                ["on" "the"] ["other"]} "the") => [["the" "other"] ["the" "mat"]])
+
+(facts "about find-all-nodes"
+       (find-all-nodes {["and" "with"] ["the" "my"]
+                        ["the" "other"] ["cat"]
+                        ["the" "mat"] ["on"]
+                        ["my" "foot"] ["on"]
+                        ["on" "the"] ["other"]} ["and" "with"]) => 
+        [[["and" "with"] ["the" "other"]]
+         [["and" "with"] ["the" "mat"]]
+         [["and" "with"] ["my" "foot"]]])
+
+(facts "about tm->graph"
+       (tm->graph {["and" "with"] ["the" "my"]
+                        ["the" "other"] ["cat"]
+                        ["the" "mat"] ["on"]
+                        ["my" "foot"] ["on"]
+                        ["on" "the"] ["other"]}) => (contains {:node-map anything}))
