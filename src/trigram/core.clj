@@ -2,7 +2,8 @@
   (:require [clojure.java.io :as io]
             [opennlp.nlp :refer :all]
             [opennlp.treebank :refer :all]
-            [ubergraph.core :as uber]))
+            [ubergraph.core :as uber]
+            [ubergraph.alg :as alg]))
 
 ;; Load the sample(s)
 ;; ========================
@@ -194,4 +195,13 @@
 
   (defn tm->graph [tm]
     (apply uber/graph (apply concat (map #(find-all-nodes tm %) (keys tm)))))
+
+;; This idea does seem to work. Try
+(defn test-graph []
+  (let [g (tm->graph {["and" "with"] ["the" "my"]
+                      ["the" "other"] ["cat"]
+                      ["the" "mat"] ["on"]
+                      ["my" "foot"] ["on"]
+                      ["on" "the"] ["other"]})]
+    (alg/edges-in-path (alg/shortest-path g {:start-node ["and" "with"] :end-node ["on" "the"]}))))
     
