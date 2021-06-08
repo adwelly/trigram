@@ -33,7 +33,7 @@
 
 ;; The Mystery of Edwin Drood. Gutenberg header and footer dropped
 (defn edwin-drood-sample [] ;; 5094 max
-   (map #(str start-token " " %) (drop-last 116 (drop 6 (get-sentences (apply str (lazy-open "http://www.gutenberg.org/files/564/564-0.txt")))))))
+   (map #(str start-token " " %) (drop-last 116 (drop 6 (get-sentences (apply str (lazy-open "https://www.gutenberg.org/files/564/564-0.txt")))))))
 
 ;; Make the trigram map
 ;; ====================
@@ -153,7 +153,7 @@
 
 (defn ten-sentences []
   (let [tm (go-drood)]
-    (doall (for [n (range 10)] (sentence tm)))))
+    (doall (for [n (range 30)] (sentence tm)))))
 
 ;; The middle out approach is defeated by the fact that the chance of hitting the beginning of
 ;; a sentence from the middle is vanishingly small. A simple search of the graph
